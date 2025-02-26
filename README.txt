@@ -23,7 +23,7 @@ Install Git
 
 
 Install Qt5
-  0. $sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+  0. $sudo apt-get install qtcreator qtbase5-dev qt5-qmake cmake
 
 
 Download and install SequenceTree4
