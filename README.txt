@@ -1,23 +1,44 @@
-==== SequenceTree4 ====
+==== SequenceTree4 Installation for Linux (tested with Pop! OS 22.04 LTS) ====
 
-COMPILATION INSTRUCTIONS for Qt4 with MinGW on Windows
+Install FFTW (tested with 3.3.10)
 
-  0. Be sure you have Qt4 and MinGW installed properly
-  1. Extract to a folder with no spaces, e.g. c:\st4
-  2. Open a command window (in the Qt4/MinGW environment)
-  3. cd to the "src� directory
-  4. Run qmake
-  5. Run mingw32-make
-  6. Executable will be created in the �bin� directory
+  0. Download fftw at http://www.fftw.org/
+  1. Extract contents to folder
+  2. cd to FFTW folder
+  3. $./configure
+  4. $make
+  5. $sudo make install
 
-COMPILATION INSTRUCTIONS for Linux
 
-  0. Be sure you have Qt4 installed properly
-  1. cd src
-  2. qmake
-  3. make
-  4. Executable will be created in the �bin� directory
-  5. Before running the program set the following environment variable:
-	export LD_LIBRARY_PATH=[st4-directory]/bin
+Install GNU Scientific Library (tested with 2.8)
+
+  0. Download GNU Scientific Library at https://ftp.gnu.org/gnu/gsl/
+  1. Extract contents to folder
+  2. cd to GSL folder
+  3. $./configure
+  4. $make
+  5. $sudo make install
+
+
+Install Git
+  0. $sudo apt-get install git
+
+
+Install Qt5
+  0. $sudo apt install qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+
+
+Download and install SequenceTree4
+  0. $git clone https://github.com/NonVersed/sequencetree4.git
+  1. $cd sequencetree4/src
+  2. $qmake
+  3. $make
+  4. $cd ..
+  5. $mkdir tmp
+
+Run SequenceTree 4
+  0. $cd sequencetree4/bin
+  1. $./st4
+
 
 
