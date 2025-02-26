@@ -1,7 +1,6 @@
 ==== SequenceTree4 Installation for Linux (tested with Pop! OS 22.04 LTS) ====
 
 Install FFTW (tested with 3.3.10)
-
   0. Download fftw at http://www.fftw.org/
   1. Extract contents to folder
   2. cd to FFTW folder
@@ -11,7 +10,6 @@ Install FFTW (tested with 3.3.10)
 
 
 Install GNU Scientific Library (tested with 2.8)
-
   0. Download GNU Scientific Library at https://ftp.gnu.org/gnu/gsl/
   1. Extract contents to folder
   2. cd to GSL folder
