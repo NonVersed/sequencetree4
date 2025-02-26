@@ -3,6 +3,7 @@
 #include <QPainter>
 #include <QDebug>
 #include <QMouseEvent>
+#include <QPainterPath>
 
 ViewmdaWidget1D::ViewmdaWidget1D(QWidget *parent) : QWidget(parent)
 {

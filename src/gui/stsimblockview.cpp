@@ -23,6 +23,7 @@
 #include <math.h>
 #include <QPalette>
 #include <QDebug>
+#include <QPainterPath>
 
 void STSimBlockPlotTimeChunks::setBlock(STSimScannerBlock *B) {
 	m_chunk_start_times.clear();
