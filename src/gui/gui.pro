@@ -9,7 +9,8 @@ MOC_DIR = ./build
 DESTDIR = ../../bin
 TARGET = st4
 
-CONFIG	+= qt release console
+#added debug
+CONFIG	+= qt release console debug
 QT+=network
 
 #Comment out the following two lines if you don't want to use webkit

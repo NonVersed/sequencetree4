@@ -8,7 +8,8 @@ OBJECTS_DIR =	./build
 MOC_DIR =   	./build
 DESTDIR =   	../../bin
 
-CONFIG += qt release console
+# added debug
+CONFIG += qt release console debug
 
 HEADERS +=
 SOURCES += rvmain.cpp

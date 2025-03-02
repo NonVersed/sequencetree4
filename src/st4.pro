@@ -9,3 +9,5 @@ SUBDIRS += VS
 
 SUBDIRS += results_viewer st4controller
 
+# added debug
+CONFIG += debug
