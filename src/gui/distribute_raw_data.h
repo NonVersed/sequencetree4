@@ -8,6 +8,7 @@
 #define RAW_DATA_FORMAT_SIEMENS_VA 1
 #define RAW_DATA_FORMAT_SIEMENS_VB 2
 #define RAW_DATA_FORMAT_SIEMENS_VD 3
+#define RAW_DATA_FORMAT_SIEMENS_XA 4
 
 struct DistributeRawDataStruct {
 	QString output_directory;
@@ -67,6 +68,8 @@ void define_raw_readout_records(
 					QList<RawTemplateRecord> &template_records,
 					int num_channels,
 					QList<long> &real_index);
+
+quint32 convertToQuint32(quint8 byte1, quint8 byte2, quint8 byte3, quint8 byte4);
 
 
 #endif

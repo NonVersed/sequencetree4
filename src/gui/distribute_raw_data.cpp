@@ -7,11 +7,12 @@
 void read_template_records(QList<RawTemplateRecord> &template_records,QString template_fname) {
 	FILE *template_file=fopen(template_fname.toLatin1().data(),"rb");
 	if (!template_file) return;	
+
 	while (!feof(template_file)) {	
 		int code;
 		if (fread(&code,sizeof(int),1,template_file)) {
 			if (code==5) { //readout
-				RawTemplateRecord R;
+                RawTemplateRecord R;
 				R.code=code;
 				fread(&R.ADC_index,sizeof(int),1,template_file);
 				fread(&R.num_points,sizeof(int),1,template_file);
@@ -245,6 +246,13 @@ void define_raw_readout_records(QList<RawReadoutRecord> &raw_readout_records,
 	}
 }
 
+quint32 convertToQuint32(quint8 byte1, quint8 byte2, quint8 byte3, quint8 byte4) {
+    return static_cast<quint32>(byte1) |
+           (static_cast<quint32>(byte2) << 8) |
+           (static_cast<quint32>(byte3) << 16) |
+           (static_cast<quint32>(byte4) << 24);
+}
+
 void distribute_raw_data(DistributeRawDataStruct &X) {	
 	//read template records
 	QList<RawTemplateRecord> template_records;
@@ -282,7 +290,8 @@ void distribute_raw_data(DistributeRawDataStruct &X) {
 			fread(&dummy,sizeof(quint8),1,dataf);
         }*/
 	}
-    else if (X.raw_data_format==RAW_DATA_FORMAT_SIEMENS_VD) { //read header for VD
+    else if (X.raw_data_format==RAW_DATA_FORMAT_SIEMENS_VD||X.raw_data_format==RAW_DATA_FORMAT_SIEMENS_XA) { //read header for VD, VE, and XA
+        // VD, VE, and XA have the same initial header format
         fseek(dataf,4,SEEK_SET);
         quint32 nMeas;
         fread(&nMeas,sizeof(quint32),1,dataf);
@@ -298,7 +307,38 @@ void distribute_raw_data(DistributeRawDataStruct &X) {
         quint32 header_size;
         fread(&header_size,sizeof(quint32),1,dataf);
         fseek(dataf,header_size-4,SEEK_CUR);
+
+        if (X.raw_data_format==RAW_DATA_FORMAT_SIEMENS_XA) {
+            // in XA, skip over PMUDATA (MDH_SYNCDATA), which are sometimes saved before actual imaging data
+            quint16 num_readouts = 0;
+            quint32 cnt = 0;
+            while (num_readouts==0) {
+                fseek(dataf,48,SEEK_CUR);
+                fread(&num_readouts,sizeof(quint16),1,dataf);
+                if (num_readouts==0) {
+                    fseek(dataf,-50,SEEK_CUR);
+
+                    // read array of uint8 values
+                    quint32 ulDMALength = 184;
+                    quint8 data_u8[ulDMALength];
+                    fread(data_u8,sizeof(quint8),ulDMALength,dataf);
+                    // keep only 1 bit from the 4th byte
+                    data_u8[3] &= 0x01;
+                    // convert the 4 first bytes to a uint32
+                    ulDMALength = convertToQuint32(data_u8[0], data_u8[1], data_u8[2], data_u8[3]);
+
+                    fseek(dataf,ulDMALength-184,SEEK_CUR);
+                    cnt++;
+                }
+            }
+
+            quint16 usedChannel;
+            fread(&usedChannel,sizeof(quint16),1,dataf);
+            fseek(dataf,-48-4,SEEK_CUR);
+        }
     }
+
+    // loop through raw_readout_records
 	foreach (RawReadoutRecord raw_readout_record,raw_readout_records) {
 		int ADC_index=raw_readout_record.ADC_index;
 		int num_points=raw_readout_record.num_points;
@@ -320,6 +360,35 @@ void distribute_raw_data(DistributeRawDataStruct &X) {
             }
             fseek(dataf,32,SEEK_CUR); //header size of 32 bytes for each readout event
         }
+        else if (X.raw_data_format==RAW_DATA_FORMAT_SIEMENS_XA) { // XA raw data format
+            if (raw_readout_record.channel_index==0) {
+                quint16 num_readouts;
+
+                do {
+                    fseek(dataf,48,SEEK_CUR);
+                    fread(&num_readouts,sizeof(quint16),1,dataf);
+                    if (num_readouts==0) {
+                        fseek(dataf,-50,SEEK_CUR);
+
+                        // read array of uint8 values
+                        quint32 ulDMALength = 184;
+                        quint8 data_u8[ulDMALength];
+                        fread(data_u8,sizeof(quint8),ulDMALength,dataf);
+                        // keep only 1 bit from the 4th byte
+                        data_u8[3] &= 0x01;
+                        // convert the 4 first bytes to a uint32
+                        ulDMALength = convertToQuint32(data_u8[0], data_u8[1], data_u8[2], data_u8[3]);
+
+                        fseek(dataf,ulDMALength-184,SEEK_CUR);
+                    }
+                } while (num_readouts==0);
+
+                fseek(dataf, 192-50, SEEK_CUR);
+            }
+            fseek(dataf,32,SEEK_CUR); //header size of 32 bytes for each readout event
+        }
+
+        // read the raw data
 		QList<float> readout_real,readout_imag;
         float hold[2*num_points];
         fread(hold,4,2*num_points,dataf);

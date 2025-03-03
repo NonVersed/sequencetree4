@@ -60,14 +60,24 @@
      <item>
       <widget class="QRadioButton" name="siemens_va_format">
        <property name="text">
-        <string>Siemens VA format</string>
+        <string>Siemens VA</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QRadioButton" name="siemens_vb_format">
        <property name="text">
-        <string>Siemens VB format</string>
+        <string>Siemens VB</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="siemens_vd_format">
+       <property name="text">
+        <string>Siemens VD</string>
        </property>
        <property name="checked">
         <bool>true</bool>
@@ -75,12 +85,9 @@
       </widget>
      </item>
      <item>
-      <widget class="QRadioButton" name="siemens_vd_format">
+      <widget class="QRadioButton" name="siemens_xa_format">
        <property name="text">
-        <string>Siemens VD format</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
+        <string>Siemens XA</string>
        </property>
       </widget>
      </item>

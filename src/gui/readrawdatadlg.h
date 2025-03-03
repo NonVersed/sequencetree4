@@ -11,6 +11,8 @@
 #include <QFile>
 #include <QDir>
 
+#include <QDebug>
+
 #include "stmetaclass.h"
 
 void erase_all_files_in_directory(QString dirname);
@@ -30,7 +32,9 @@ public:
 		ui.raw_data->setText(settings.value("raw_data").toString());
 		ui.siemens_va_format->setChecked(settings.value("raw_data_format").toString()=="siemens_va");
 		ui.siemens_vb_format->setChecked(settings.value("raw_data_format").toString()=="siemens_vb");		
-		ui.siemens_vd_format->setChecked(settings.value("raw_data_format").toString()=="siemens_vd");	
+        ui.siemens_vd_format->setChecked(settings.value("raw_data_format").toString()=="siemens_vd");
+        // BV 20250302: added XA format
+        ui.siemens_xa_format->setChecked(settings.value("raw_data_format").toString()=="siemens_xa");
 		
 		connect(ui.browse_raw_data_button,SIGNAL(clicked()),this,SLOT(slot_browse_raw_data()));
 		slot_browse_raw_data();
@@ -100,6 +104,56 @@ public:
             fread(&usedChannel,sizeof(quint16),1,dataf);
             X.num_channels=usedChannel;
 		}
+        else if (ui.siemens_xa_format->isChecked()) {
+            // BV 20250302: added XA format
+            // save header_size, raw_data_format, and num_channels to struct X
+            X.header_size = 192;
+            X.raw_data_format=RAW_DATA_FORMAT_SIEMENS_XA;
+            settings.setValue("raw_data_format", "siemens_xa");
+            // open .dat file and skip the header
+            fseek(dataf,4,SEEK_SET);
+            quint32 nMeas;
+            fread(&nMeas,sizeof(qint32),1,dataf);
+            quint64 measLen=0;
+            for(quint32 i=0;i<nMeas-1;i++){
+                fseek(dataf,16,SEEK_CUR);
+                quint64 tmp;
+                fread(&tmp,sizeof(quint64),1,dataf);
+                measLen+=tmp%512?(tmp/512+1)*512:tmp;
+                fseek(dataf,152-24,SEEK_CUR);
+            }
+            fseek(dataf,2*4+152*64+126*4+measLen,SEEK_SET);
+            quint32 header_size;
+            fread(&header_size,sizeof(quint32),1,dataf);
+            fseek(dataf,header_size-4,SEEK_CUR);
+
+            // in XA, skip over PMUDATA (MDH_SYNCDATA), which are sometimes saved before actual imaging data
+            quint16 num_readouts = 0;
+            quint32 cnt = 0;
+            while (num_readouts==0) {
+                fseek(dataf,48,SEEK_CUR);
+                fread(&num_readouts,sizeof(quint16),1,dataf);
+                if (num_readouts==0) {
+                    fseek(dataf,-50,SEEK_CUR);
+
+                    // read array of uint8 values
+                    quint32 ulDMALength = 184;
+                    quint8 data_u8[ulDMALength];
+                    fread(data_u8,sizeof(quint8),ulDMALength,dataf);
+                    // keep only 1 bit from the 4th byte
+                    data_u8[3] &= 0x01;
+                    // convert the 4 first bytes to a uint32
+                    ulDMALength = convertToQuint32(data_u8[0], data_u8[1], data_u8[2], data_u8[3]);
+
+                    fseek(dataf,ulDMALength-184,SEEK_CUR);
+                    cnt++;
+                }
+            }
+
+            quint16 usedChannel;
+            fread(&usedChannel,sizeof(quint16),1,dataf);
+            X.num_channels=usedChannel;
+        }
 		else {
 			X.header_size=128;
 			X.raw_data_format=RAW_DATA_FORMAT_SIEMENS_VA;
